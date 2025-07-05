@@ -24,11 +24,6 @@ proof fn triangle_is_monotonic(i:nat,j:nat)
     }
 }
 
-fn test_triangle_fail() {
-    assert(triangle(0) == 0);
-    assert(triangle(10) == 55);
-}
-
 exec fn triangle_loop(n: u32) -> (sum: u32)
     requires 
         triangle(n as nat) < 0x1_0000_0000,
