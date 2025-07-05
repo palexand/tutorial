@@ -8,7 +8,7 @@ spec fn triangle(n:nat) -> nat
     if n == 0 {
         0
     } else {
-        n + triangle(n - 1)
+        n + triangle((n - 1) as nat)
     }
 }
 
@@ -24,9 +24,9 @@ proof fn triangle_is_monotonic(i:nat,j:nat)
     }
 }
 
-exec fn triangle_loop(n: u32) -> (sum: u32)
+fn triangle_loop(n: u32) -> (sum: u32)
     requires 
-        triangle(n as nat) < 0x1_0000_0000,
+        triangle(n as nat) < 0x1_0000_000,
     ensures
         sum == triangle(n as nat),
     {
@@ -35,7 +35,7 @@ exec fn triangle_loop(n: u32) -> (sum: u32)
         while idx < n
             invariant
                 idx <= n,
-                sum = triangle(idx as nat),
+                sum == triangle(idx as nat),
                 triangle(n as nat) < 0x1_0000_0000,
             decreases n - idx,
         {
@@ -45,6 +45,7 @@ exec fn triangle_loop(n: u32) -> (sum: u32)
             }
             sum = sum + idx;
         }
-        sum
+        return sum
     }
-}
+    
+}  

@@ -1,4 +1,5 @@
 mod octuple;
+mod triangle;
 
 use vstd::prelude::*;
 
