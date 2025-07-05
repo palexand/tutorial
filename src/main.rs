@@ -1,3 +1,5 @@
+mod octuple;
+
 use vstd::prelude::*;
 
 verus!{
@@ -83,40 +85,31 @@ exec fn fact_exec(x:i32) -> (z:i32)
 }
 
 
-fn factorialc(n: u64) -> (result: u64)
-    ensures result == 
-        if n == 0 { 1 } else { n * factorial(n - 1) }
-{
-    let mut i: u64 = 1;
-    let mut acc: u64 = 1;
-
-    // Loop invariant: acc == i!
-    while i <= n
-        invariant
-            1 <= i && i <= n + 1,
-            acc == factorialc(i - 1),
-    {
-        acc *= i;
-        i += 1;
-    }
-
-    acc
+spec fn factorialc(n: int) -> (result: int)
+    decreases n,
+{        
+    if n == 0 {
+        1
+    } else {
+        n * factorialc((n - 1) as int)
+    }   
 }
 
-proof fn factorialc(n: u64) -> (res: u64)
+exec fn factorialcp(n: i64) -> (res: i64)
     ensures
-        res == if n == 0 { 1 } else { n * factorial(n - 1) },
+        res == if n == 0 { 1 } else { n * factorialc(n - 1) },
 {
-    let mut i = 1;
-    let mut acc = 1;
+    let mut i: i64 = 1;
+    let mut acc: i64 = 1;
 
     while i <= n
         invariant
             1 <= i && i <= n + 1,
             acc == factorialc(i - 1),
+        decreases n - i + 1,
     {
-        acc = acc * i;
-        i = i + 1;
+        acc = (acc * i) as i64;
+        i = (i - 1) as i64;
     }
 
     acc
