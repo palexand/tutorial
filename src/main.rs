@@ -29,6 +29,25 @@ fn main() {
     assert(n==80)
 }
 
+/* Define an ideal secification for incremenet over naturals. */
+spec fn inc(n: nat) -> nat
+{
+    if n == 0 {
+        1
+    } else {
+        n + 1
+    }
+}  
+
+/* define an increment definition for an implementation */
+exec fn inc_exec(x:i32) -> (z:i32)
+    requires 0 <= x < 100,
+    ensures z == inc(x as nat) && z>x,
+{
+    return x+1
+}
+
+/* Define an ideal specification for factorial over naturals. Ideal in that overflow and underflow are quite allowed. */
 spec fn fact(n: nat) -> nat
     decreases n,
 {
@@ -39,20 +58,68 @@ spec fn fact(n: nat) -> nat
     }
 }
 
-exec fn fact_exec(x:i8) -> (z:i32)
+/*
+Define an implementation of factorial using machine oriented numbers.  What's going on is interesting as this specification must account for overflow and underflow.  Note the addition of `wrapping_mul` which will solve the overflow problem, but will not match the specification without accounting for various errors.
+*/
+
+exec fn fact_exec(x:i32) -> (z:i32)
     requires 0<=x<5,
     ensures z==fact(x as nat),
 {
-    let mut c: i8 = x;
+    let mut c: i32 = x;
+    let mut i: i32 = 1;
     let mut acc: i32 = 1;
-    while c > 0
-        invariant c >= 0,
-        decreases c,
+    while i <= x
+        invariant
+            1 <= i && i <= x + 1,
+            // && 1 <= acc
+            // && (acc as nat) * fact((x - i + 1) as nat) == fact(x as nat),
+        decreases x - i + 1,
     {
-        c = c-1;
-        acc =  (c as i32) * acc;
+        acc = acc * i;
+        i = i + 1;
     }
-    return acc as i32;
+    return acc;
+}
+
+
+fn factorialc(n: u64) -> (result: u64)
+    ensures result == 
+        if n == 0 { 1 } else { n * factorial(n - 1) }
+{
+    let mut i: u64 = 1;
+    let mut acc: u64 = 1;
+
+    // Loop invariant: acc == i!
+    while i <= n
+        invariant
+            1 <= i && i <= n + 1,
+            acc == factorialc(i - 1),
+    {
+        acc *= i;
+        i += 1;
+    }
+
+    acc
+}
+
+proof fn factorialc(n: u64) -> (res: u64)
+    ensures
+        res == if n == 0 { 1 } else { n * factorial(n - 1) },
+{
+    let mut i = 1;
+    let mut acc = 1;
+
+    while i <= n
+        invariant
+            1 <= i && i <= n + 1,
+            acc == factorialc(i - 1),
+    {
+        acc = acc * i;
+        i = i + 1;
+    }
+
+    acc
 }
 
 }
