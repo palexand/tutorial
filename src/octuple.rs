@@ -31,6 +31,19 @@ fn test_consts() {
         let n: nat = 3;
         0int <= u < i < n < 4
     });
-}   
+}
+
+spec fn min(x: int, y: int) -> (z: int) {
+    if x <= y {
+        x
+    } else { 
+        y
+    }
+}
+
+fn test() {
+    assert(min(10,20) == 10);
+    assert(min(100,200)== 100);
+}
 
 }
