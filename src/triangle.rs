@@ -53,14 +53,39 @@ fn triangle_loop(n: u32) -> (sum: u32)
             reveal_with_fuel(triangle,20);}
         }
 
+    fn rec_triangle(n:u32) -> (z:u32)
+        requires
+            triangle(n as nat) < 0x1_0000_0000,
+        ensures
+            z == triangle(n as nat),
+        decreases n,
+    {
+        if n == 0 {
+            0
+        } else { n + rec_triangle(n - 1) }
+    }
+
+fn mut_triangle(n: u32, z: &mut u32)
+        requires
+            triangle(n as nat) < 0x1_0000_0000,
+        ensures
+            *z == triangle(n as nat),
+        decreases n,
+    {
+        if n == 0 {
+            *z = 0
+        } else { mut_triangle(n - 1,z);
+                *z = *z + n }
+    }
+
     fn main(){
-        assert(triangle(3) < 0x1_0000_0000) by
-            {reveal_with_fuel(triangle,20)};
-        assert(triangle(3) == 6) by
-            {reveal_with_fuel(triangle,20)};
-//        assert(triangle(0) == 0);
-//        assert(triangle(1) == 1);
-//        assert(triangle(2) == 3);
+//        assert(triangle(3) < 0x1_0000_0000) by
+//            {reveal_with_fuel(triangle,20)};
+//        assert(triangle(3) == 6) by
+//            {reveal_with_fuel(triangle,20)};
+        assert(triangle(0) == 0);
+        assert(triangle(1) == 1);
+        assert(triangle(2) == 3);
 //        assert(triangle(3) == 6);
         triangle_loop(3);}
 }  
