@@ -46,6 +46,21 @@ fn triangle_loop(n: u32) -> (sum: u32)
             sum = sum + idx;
         }
         return sum
-    }
-    
+    } 
+
+    fn test_triangle_assert_by() {
+        assert(triangle(3) < 0x1_0000_0000) by {
+            reveal_with_fuel(triangle,20);}
+        }
+
+    fn main(){
+        assert(triangle(3) < 0x1_0000_0000) by
+            {reveal_with_fuel(triangle,20)};
+        assert(triangle(3) == 6) by
+            {reveal_with_fuel(triangle,20)};
+//        assert(triangle(0) == 0);
+//        assert(triangle(1) == 1);
+//        assert(triangle(2) == 3);
+//        assert(triangle(3) == 6);
+        triangle_loop(3);}
 }  
