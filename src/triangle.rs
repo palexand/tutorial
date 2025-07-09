@@ -131,5 +131,7 @@ fn loop_triangle(n:u32) -> (sum:u32)
         assert(triangle(1) == 1);
         assert(triangle(2) == 3);
 //        assert(triangle(3) == 6);
-        triangle_loop(3);}
+        let x = triangle_loop(3) + triangle_loop(4);
+        let t4: u32 = triangle_loop(4);
+    }
 }  
