@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__ide__getDiagnostics",
+      "Bash(verus:*)",
+      "WebFetch(domain:verus-lang.github.io)",
+      "WebFetch(domain:github.com)",
+      "Bash(/Users/alex/lang/verus --compile src/ae.rs)",
+      "Bash(/Users/alex/lang/verus-arm64-macos/verus --compile src/ae.rs)",
+      "Bash(./ae)"
+    ],
+    "deny": []
+  }
+}
