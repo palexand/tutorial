@@ -57,7 +57,7 @@ spec fn fact(n: nat) -> nat
     decreases n,
 {
     if n == 0 {
-        0
+        1
     } else {
         n * fact((n - 1) as nat)
     }
@@ -71,6 +71,10 @@ exec fn fact_exec(x:i32) -> (z:i32)
     requires 0<=x<5,
     ensures z==fact(x as nat),
 {
+    assert(fact(0)==1);
+    assert(fact(1)==1);
+    assert(fact(2)==2);
+    assert(fact(3)==6);
     let mut c: i32 = x;
     let mut i: i32 = 1;
     let mut acc: i32 = 1;
@@ -82,8 +86,11 @@ exec fn fact_exec(x:i32) -> (z:i32)
         decreases x - i + 1,
     {
         acc = acc * i;
-        i = i + 1;
+        assert(1 <= i && i <= x + 1);
+        i = i + 1i32;
+        assert(1 <= i && i <= x + 1);
     }
+    assert(acc==fact(x as nat));
     return acc;
 }
 
