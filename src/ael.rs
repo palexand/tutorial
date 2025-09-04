@@ -12,16 +12,13 @@
 // the Verus setup to verify the correctness.
 
 #[allow(unused_imports)]
-use builtin::*;
-#[allow(unused_imports)]
-use builtin_macros::*;
-#[allow(unused_imports)]
 use vstd::prelude::*; // Added for Verus post-synthesis
 
 verus! {
 
 // Define an enum to represent the abstract syntax tree (AST) of our arithmetic
-// language
+// language.  Paramterize the AST over a carrier set to allow for ASTs over Rust
+// types and verus types.  Four terms - Numbers, Add, Subtract and If.  
 #[derive(Debug)]
 pub enum Expr<Carrier> {
     Num(Carrier),
@@ -30,6 +27,9 @@ pub enum Expr<Carrier> {
     If(Box<Expr<Carrier>>, Box<Expr<Carrier>>, Box<Expr<Carrier>>),
 }
 
+// Define evaluator requirements as a recrusive function over the Expr type.
+// This is a classical normative definition.  Note that the carrier set is the
+// verus int type making this a specification.
 spec fn eval_spec(e:Expr<int>) -> (v:int)
     decreases e,
 {
@@ -49,6 +49,8 @@ proof fn add_comm(l: Box<Expr<int>>, r: Box<Expr<int>>)
     ensures eval_spec(Expr::Add(l,r)) == eval_spec(Expr::Add(r,l)),
     {}
 
+// Prove a simple associative property for addition in the AE language.  Proof
+// uses fuel to allow eval_spec to unfold up to 5 times.
 proof fn add_assoc_ex(x: Box<Expr<int>>, y: Box<Expr<int>>, z: Box<Expr<int>>)
     ensures eval_spec(Expr::Add(
                 Box::new(Expr::Add(
@@ -63,6 +65,8 @@ proof fn add_assoc_ex(x: Box<Expr<int>>, y: Box<Expr<int>>, z: Box<Expr<int>>)
 {   reveal_with_fuel(eval_spec,5);
 }
 
+// Same associativity proof without specifying fuel making it default to 1.  See
+// how the sequence of ont step unfolds allows the proof to proceed.
 proof fn add_assoc_no_fuel_ex(x: Box<Expr<int>>, y: Box<Expr<int>>, z: Box<Expr<int>>)
     ensures eval_spec(Expr::Add(
                 Box::new(Expr::Add(
@@ -82,8 +86,8 @@ proof fn add_assoc_no_fuel_ex(x: Box<Expr<int>>, y: Box<Expr<int>>, z: Box<Expr<
     assert( eval_spec(Expr::Add(Box::new(Expr::Num(2int)),(Box::new(Expr::Num(3int)))))==5int);
 }
 
-// The trick was fuel.  Forgot about that.  Solvers will limit unroll depth
-// to 1 if fuel is not specified.
+// This is the version of the proof I would keep.  Parameterized over x, y, and
+// z.
 proof fn add_assoc(x: Box<Expr<int>>, y: Box<Expr<int>>, z: Box<Expr<int>>)
     ensures eval_spec(Expr::Add(
                 Box::new(Expr::Add(
@@ -98,9 +102,10 @@ proof fn add_assoc(x: Box<Expr<int>>, y: Box<Expr<int>>, z: Box<Expr<int>>)
 {   reveal_with_fuel(eval_spec,5);
 }
 
-// In Verus, we'll need to use specifications to describe properties of our
-// structures Here is an example of how you might specify properties using Verus
-// for evaluation
+// We need to use the spec function to define requirements for the exec
+// function.  Thus, we will need to convert ASTs defined over i32 to ASTs
+// defined over int.  This effectively moves from implementation to
+// specification.  This is written in the classic object oriented style.
 impl Expr<i32> {
     spec fn to_int_expr(self) -> Expr<int> 
     decreases self,
@@ -118,11 +123,18 @@ impl Expr<i32> {
     }
 }
 
+// checked_eval takes an expresion, e, and interprets it to an Option type that
+// allows failure.  The checked_add and checked_sub operations generate Option
+// types that indicate success or failure.
 fn checked_eval(e: Expr<i32>) -> (v:Option<i32>)
+    // ensure clause compares the output of the interpreter with the output of
+    // the specification run on the same term.  checked_eval is correct if the
+    // two values are the same for all terms.  None produces true for the time
+    // being.  This is not optimal, but lets the ensures clause go through.
     ensures match v {
         Some(n) => (n as int)==eval_spec(e.to_int_expr()),
-        None => true
-    },
+        None => true}
+    // checked_eval decreases on e
     decreases e,
 {
     match e {
@@ -140,7 +152,8 @@ fn checked_eval(e: Expr<i32>) -> (v:Option<i32>)
 }
 
 // Use the following main function to demonstrate creating and evaluating
-// expressions
+// expressions.  This is weird and can safely be ignored.  Note the
+// external_body directive that tells the verifier not to consider this definition.
 #[verifier::external_body]
 fn main() {
     // Should evaluate to 3

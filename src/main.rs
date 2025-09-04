@@ -67,30 +67,27 @@ spec fn fact(n: nat) -> nat
 Define an implementation of factorial using machine oriented numbers.  What's going on is interesting as this specification must account for overflow and underflow.  Note the addition of `wrapping_mul` which will solve the overflow problem, but will not match the specification without accounting for various errors.
 */
 
-exec fn fact_exec(x:i32) -> (z:i32)
-    requires 0<=x<5,
+exec fn fact_exec(x:u32) -> (z:u32)
+    requires fact(x as nat)<1_0000_0000_0000,
     ensures z==fact(x as nat),
 {
-    assert(fact(0)==1);
-    assert(fact(1)==1);
-    assert(fact(2)==2);
-    assert(fact(3)==6);
-    let mut c: i32 = x;
-    let mut i: i32 = 1;
-    let mut acc: i32 = 1;
-    while i <= x
+    let mut c: u32 = x;
+    let mut acc: u32 = 1;
+    while 0 < c
         invariant
-            1 <= i && i <= x + 1,
-            // && 1 <= acc
-            // && (acc as nat) * fact((x - i + 1) as nat) == fact(x as nat),
-        decreases x - i + 1,
+            c <= x,
+            (acc as nat) * fact(c as nat) == fact(x as nat),
+        decreases c,
     {
-        acc = acc * i;
-        assert(1 <= i && i <= x + 1);
-        i = i + 1i32;
-        assert(1 <= i && i <= x + 1);
+        acc = acc * c;
+        c = c - 1;
+        assert((acc as nat) * fact(c as nat) == fact(x as nat));
     }
-    assert(acc==fact(x as nat));
+    assert(c==0); //c is 0
+    assert(fact(c as nat)==1); //fact c is 0
+    assert((acc as nat) * 1 == (acc as nat)); //acc * 1 is acc
+    assert((acc as nat) * fact(c as nat) == fact(x as nat)); //everythin is one
+    assert((acc as nat)==fact(x as nat)); // pull out the check of c
     return acc;
 }
 
